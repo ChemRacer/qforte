@@ -20,10 +20,7 @@ def qft_circuit(n, direct):
         qft_circ.add_gate(qforte.make_gate('H', j, j))
         for k in range(2, n+1-j):
             phase = 2.0*numpy.pi/(2**k)
-            if direct == 'forward':
-                qft_circ.add_gate(qforte.make_gate('cR', j, j+k-1, phase))
-            if direct == 'reverse':
-                qft_circ.add_gate(qforte.make_gate('cR', j, j+k-1, (-1)*phase))
+            qft_circ.add_gate(qforte.make_gate('cR', j, j+k-1, phase))
 
     # Build reversing circuit
     if n % 2 == 0:
@@ -33,7 +30,14 @@ def qft_circuit(n, direct):
         for i in range(int((n-1)/2)):
             qft_circ.add_gate(qforte.make_gate('SWAP', i, n-1-i))
 
-    return qft_circ
+    if direct == 'forward':
+        qforte.smart_print(qft_circ)
+        return qft_circ
+    if direct == 'reverse':
+        qforte.smart_print(qft_circ)
+        qforte.smart_print(qft_circ.adjoint())
+        return qft_circ.adjoint()
+
 
 def qft(qc_state, n):
 
@@ -74,7 +78,6 @@ def rev_qft(qc_state, n):
 
     # Apply qft circuits
     circ = qft_circuit(n, 'reverse')
-    circ.reversed_gates()
     qc_state.apply_circuit(circ)
 
     # Normalize coeffs
