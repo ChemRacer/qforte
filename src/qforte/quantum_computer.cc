@@ -126,7 +126,7 @@ void QuantumComputer::apply_gate(const QuantumGate& qg) {
     std::fill(new_coeff_.begin(), new_coeff_.end(), 0.0);
 }
 
-std::vector<double> QuantumComputer::measure_circuit(const QuantumCircuit& qc, size_t n_measurements) {
+std::vector<double> QuantumComputer::measure_circuit(const QuantumCircuit& qc, size_t n_measurements, char basis) {
     // initialize a "Basis_rotator" QC to represent the corresponding change
     // of basis
     QuantumCircuit Basis_rotator;
@@ -137,21 +137,40 @@ std::vector<double> QuantumComputer::measure_circuit(const QuantumCircuit& qc, s
     // TODO: make code more readable (Nick)
     // TODO: add gate lable not via enum? (Nick)
     // TODO: Acount for case where gate is only the identity
+    if(basis == 'c'){
+        for(const QuantumGate& gate : qc.gates()){
+            size_t target_qubit = gate.target();
+            std::string gate_id = gate.gate_id();
+            if ( gate_id == "Z" ) {
+                QuantumGate temp = make_gate("I", target_qubit, target_qubit);
+                Basis_rotator.add_gate(temp);
+            } else if ( gate_id == "X" ) {
+                QuantumGate temp = make_gate("H", target_qubit, target_qubit);
+                Basis_rotator.add_gate(temp);
+            } else if (gate_id == "Y"){
+                QuantumGate temp = make_gate("Rzy", target_qubit, target_qubit);
+                Basis_rotator.add_gate(temp);
+            } else if (gate_id != "I") {
+                //std::cout<<'unrecognized gate in operator!'<<std::endl;
+            }
+        }
+    }
 
-    for(const QuantumGate& gate : qc.gates()){
-        size_t target_qubit = gate.target();
-        std::string gate_id = gate.gate_id();
-        if ( gate_id == "Z" ) {
-            QuantumGate temp = make_gate("I", target_qubit, target_qubit);
-            Basis_rotator.add_gate(temp);
-        } else if ( gate_id == "X" ) {
-            QuantumGate temp = make_gate("H", target_qubit, target_qubit);
-            Basis_rotator.add_gate(temp);
-        } else if (gate_id == "Y"){
-            QuantumGate temp = make_gate("Rzy", target_qubit, target_qubit);
-            Basis_rotator.add_gate(temp);
-        } else if (gate_id != "I") {
-            //std::cout<<'unrecognized gate in operator!'<<std::endl;
+    if(basis == 'b'){ // measure in bell basis
+        for(const QuantumGate& gate : qc.gates()){
+            size_t target_qubit = gate.target();
+            std::string gate_id = gate.gate_id();
+            if ( gate_id == "Z" ) {
+                QuantumGate temp = make_gate("H", target_qubit, target_qubit);
+                Basis_rotator.add_gate(temp);
+            } else if ( gate_id == "X" ) {
+                QuantumGate temp = make_gate("I", target_qubit, target_qubit);
+                Basis_rotator.add_gate(temp);
+            } else if (gate_id == "Y"){
+                QuantumGate temp = make_gate("S", target_qubit, target_qubit);
+                Basis_rotator.add_gate(temp);
+            } else if (gate_id != "I") {
+            }
         }
     }
 
