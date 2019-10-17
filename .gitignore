@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+**qforte.egg-info/
+**/__pycache__/
+**build/
